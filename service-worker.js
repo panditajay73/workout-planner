@@ -7,8 +7,8 @@ const ASSETS_TO_CACHE = [
   BASE_PATH + '/index.html',
   BASE_PATH + '/manifest.json',
   // add important assets from your images folder you want cached:
-  BASE_PATH + '/images/icons/icon-192.png',
-  BASE_PATH + '/images/icons/icon-512.png'
+  BASE_PATH + '/icons/icon-192.png',
+  BASE_PATH + '/icons/icon-512.png'
   // optional: list other images you want pre-cached, e.g.
   // BASE_PATH + '/images/my-workout-1.gif'
 ];
