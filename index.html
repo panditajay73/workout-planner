@@ -10,7 +10,14 @@
 
   <!-- Inter font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+ <!-- PWA manifest & theme (create manifest.json at repo root as described in earlier steps) -->
+  <link rel="manifest" href="/workout-planner/manifest.json">
+  <meta name="theme-color" content="#ff7a00">
 
+  <!-- iOS support (place icons at images/icons/) -->
+  <link rel="apple-touch-icon" href="/workout-planner/images/icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <style>
     body {
       font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
@@ -19,39 +26,30 @@
       -webkit-font-smoothing:antialiased;
       -moz-osx-font-smoothing:grayscale;
     }
-
-    /* Indian accent colors: saffron & deep green */
     .accent-saffron { background: linear-gradient(90deg,#ff9933,#ff7a00); color: #fff; }
     .accent-green { background: linear-gradient(90deg,#0ea5a4,#037f4c); color: #fff; }
-
-    /* Tabs */
     .tab-active {
       background: linear-gradient(90deg,#ff7a00,#ff9933);
       color: #071229;
       box-shadow: 0 8px 30px rgba(255,122,0,0.25);
     }
-
-    /* Cards & hover */
     .exercise-card { transition: transform .22s ease, box-shadow .22s ease; }
     .exercise-card:hover { transform: translateY(-6px) scale(1.01); box-shadow: 0 18px 40px rgba(2,6,23,0.6); }
     .exercise-img { transition: transform .35s ease; }
     .exercise-card:hover .exercise-img { transform: scale(1.06); }
-
-    /* Subtle pattern for header */
     .header-pattern {
       background-image: radial-gradient(circle at 10% 10%, rgba(255,255,255,0.03), transparent 10%),
                         radial-gradient(circle at 90% 90%, rgba(255,255,255,0.02), transparent 10%);
     }
-
-    /* scrollbar */
     ::-webkit-scrollbar { height: 8px; width: 8px; }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 10px; }
-
-    /* small responsive fixes */
-    @media (max-width:640px){
-      .big-title { font-size:1.4rem; }
-    }
-
+    @media (max-width:640px){ .big-title { font-size:1.4rem; } }
+    /* floating install button small tweaks */
+    #install-btn { backdrop-filter: blur(4px); }
+    /* small toast */
+    .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: 6rem; z-index: 60; display: none; }
+    .toast.show { display: block; animation: fadein .18s ease-out; }
+    @keyframes fadein { from { opacity: 0; transform: translateY(8px) translateX(-50%);} to { opacity: 1; transform: translateY(0) translateX(-50%);} }
   </style>
 </head>
 <body class="min-h-screen p-4 sm:p-8">
@@ -100,7 +98,15 @@
 
     <footer class="mt-8 text-center text-xs text-slate-400">© <span id="year"></span> Ajay Pandey • Keep it consistent.</footer>
   </div>
+<!-- Floating Install CTA -->
+  <button id="install-btn" class="fixed right-4 bottom-6 z-50 hidden items-center gap-2 px-4 py-2 rounded-full bg-amber-500 text-amber-900 font-semibold shadow-xl">
+    ➕ Install
+  </button>
 
+  <!-- Small toast for messages -->
+  <div id="toast" class="toast">
+    <div class="px-4 py-2 rounded-lg bg-black/70 text-white text-sm">Tip: On iPhone use Safari → Share → Add to Home Screen</div>
+  </div>
   <script>
     // --- Workout dataset with GIF links (one per exercise) ---
     // I used public GIF-host URLs. If any GIF fails, the onerror fallback will show a placeholder.
@@ -268,6 +274,120 @@
       renderContent(currentDayIndex);
       document.getElementById('year').textContent = new Date().getFullYear();
     };
+
+        // ---------- PWA: service worker registration + install flow ----------
+    const installBtn = document.getElementById('install-btn');
+    const toastEl = document.getElementById('toast');
+
+    // Attempt to register an external service worker first (recommended)
+    async function tryRegisterExternalSW() {
+      if ('serviceWorker' in navigator) {
+        try {
+          const reg = await navigator.serviceWorker.register('/workout-planner/service-worker.js');
+          console.log('External SW registered:', reg.scope);
+          return true;
+        } catch (err) {
+          console.warn('External SW register failed (will try inline):', err);
+          return false;
+        }
+      }
+      return false;
+    }
+
+    // Inline service worker fallback (registered from a Blob). This is a convenience for quick testing.
+    async function registerInlineSW() {
+      if (!('serviceWorker' in navigator)) return false;
+      const swCode = `
+        const CACHE_NAME = 'desifit-inline-v1';
+        const BASE_PATH = '/workout-planner';
+        const OFFLINE_URL = BASE_PATH + '/index.html';
+        const ASSETS = [BASE_PATH + '/', BASE_PATH + '/index.html', BASE_PATH + '/manifest.json'];
+
+        self.addEventListener('install', e => {
+          e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+        });
+        self.addEventListener('activate', e => {
+          e.waitUntil(caches.keys().then(keys => Promise.all(keys.map(k => k !== CACHE_NAME ? caches.delete(k) : null))).then(() => self.clients.claim()));
+        });
+        self.addEventListener('fetch', event => {
+          if (event.request.method !== 'GET') return;
+          event.respondWith(caches.match(event.request).then(cached => cached || fetch(event.request).then(res => {
+            if (event.request.url.startsWith(self.location.origin + BASE_PATH)) {
+              const copy = res.clone();
+              caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+            }
+            return res;
+          }).catch(() => {
+            if (event.request.mode === 'navigate' || (event.request.headers.get('accept') || '').includes('text/html')) {
+              return caches.match(OFFLINE_URL);
+            }
+          })));
+        });
+      `;
+      try {
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        const swUrl = URL.createObjectURL(blob);
+        const reg = await navigator.serviceWorker.register(swUrl);
+        console.log('Inline SW registered (blob):', reg.scope);
+        return true;
+      } catch (err) {
+        console.warn('Inline SW registration failed:', err);
+        return false;
+      }
+    }
+
+    // Try external then inline fallback
+    (async () => {
+      const ok = await tryRegisterExternalSW();
+      if (!ok) {
+        await registerInlineSW();
+      }
+    })();
+
+    // beforeinstallprompt flow (Android / Chrome)
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.classList.remove('hidden');
+    });
+
+    installBtn.addEventListener('click', async () => {
+      // For iOS we show hint instead of prompt
+      if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+        toast('On iPhone: open Safari → Share → Add to Home Screen');
+        return;
+      }
+      if (!deferredPrompt) return;
+      installBtn.classList.add('hidden');
+      deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      console.log('User choice:', choice.outcome);
+      deferredPrompt = null;
+    });
+
+    window.addEventListener('appinstalled', () => {
+      console.log('App installed');
+      installBtn.classList.add('hidden');
+      toast('App installed — open from your Home Screen');
+    });
+
+    // iOS heuristic: show install CTA (manual)
+    function isIos() { return /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase()); }
+    function isInStandaloneMode() { return ('standalone' in window.navigator) && window.navigator.standalone; }
+    if (isIos() && !isInStandaloneMode()) {
+      // show install button with manual instruction
+      installBtn.classList.remove('hidden');
+      installBtn.textContent = 'Add to Home Screen (iOS)';
+    }
+
+    // small toast helper
+    function toast(msg, time = 3000) {
+      toastEl.querySelector('div').textContent = msg;
+      toastEl.classList.add('show');
+      setTimeout(() => toastEl.classList.remove('show'), time);
+    }
   </script>
 </body>
 </html>
+
