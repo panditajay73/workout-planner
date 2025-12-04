@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Full Week Progressive Workout Plan — Desi Edition</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Inter font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg, #071229 0%, #071a2b 60%);
+      color: #e6eef8;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    /* Indian accent colors: saffron & deep green */
+    .accent-saffron { background: linear-gradient(90deg,#ff9933,#ff7a00); color: #fff; }
+    .accent-green { background: linear-gradient(90deg,#0ea5a4,#037f4c); color: #fff; }
+
+    /* Tabs */
+    .tab-active {
+      background: linear-gradient(90deg,#ff7a00,#ff9933);
+      color: #071229;
+      box-shadow: 0 8px 30px rgba(255,122,0,0.25);
+    }
+
+    /* Cards & hover */
+    .exercise-card { transition: transform .22s ease, box-shadow .22s ease; }
+    .exercise-card:hover { transform: translateY(-6px) scale(1.01); box-shadow: 0 18px 40px rgba(2,6,23,0.6); }
+    .exercise-img { transition: transform .35s ease; }
+    .exercise-card:hover .exercise-img { transform: scale(1.06); }
+
+    /* Subtle pattern for header */
+    .header-pattern {
+      background-image: radial-gradient(circle at 10% 10%, rgba(255,255,255,0.03), transparent 10%),
+                        radial-gradient(circle at 90% 90%, rgba(255,255,255,0.02), transparent 10%);
+    }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { height: 8px; width: 8px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 10px; }
+
+    /* small responsive fixes */
+    @media (max-width:640px){
+      .big-title { font-size:1.4rem; }
+    }
+
+  </style>
+</head>
+<body class="min-h-screen p-4 sm:p-8">
+
+  <div class="max-w-7xl mx-auto">
+
+    <!-- Header -->
+    <header class="text-center mb-8 p-6 rounded-xl shadow-2xl header-pattern" aria-hidden="false">
+      <div class="flex items-center justify-center gap-4 mb-4">
+        <div class="w-12 h-12 rounded-full accent-saffron flex items-center justify-center shadow-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="white">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+        </div>
+        <div class="w-12 h-12 rounded-full accent-green flex items-center justify-center shadow-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="white">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14" />
+          </svg>
+        </div>
+      </div>
+
+      <h1 class="big-title text-3xl sm:text-4xl font-extrabold text-white mb-2">Full Week Progressive Split — Desi Flow</h1>
+      <p class="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto"><span class="font-semibold">🚩🚩जय माँ भवानी🚩🚩</span></p>
+      <p class="text-slate-400 text-xs mt-2">Made with ❤️ for strong bodies and disciplined minds — Push your limits.</p>
+    </header>
+
+    <!-- General Rules -->
+    <div class="bg-white/5 p-4 rounded-lg mb-8 shadow-inner border border-white/6">
+      <div class="flex flex-wrap justify-between gap-3 text-xs sm:text-sm font-semibold text-slate-100">
+        <p class="flex items-center gap-2">🔥 <span class="opacity-90">Warm-up: 5 mins</span></p>
+        <p class="flex items-center gap-2">⏱️ <span class="opacity-90">Rest: 1–2 mins</span></p>
+        <p class="flex items-center gap-2">📈 <span class="opacity-90">Progressive Overload — increase load or reps</span></p>
+        <p class="flex items-center gap-2">🧘 <span class="opacity-90">Stretch 5 mins after</span></p>
+      </div>
+    </div>
+
+    <!-- Day Tabs -->
+    <div id="day-tabs" class="flex flex-wrap justify-center gap-2 mb-8 p-3 bg-white/3 rounded-xl shadow-lg overflow-x-auto">
+      <!-- JS will populate -->
+    </div>
+
+    <!-- Content -->
+    <div id="workout-content" class="bg-white/4 p-6 rounded-2xl shadow-2xl border border-white/6">
+      <div class="text-center text-slate-200">Select a day above to view the exercises.</div>
+    </div>
+
+    <footer class="mt-8 text-center text-xs text-slate-400">© <span id="year"></span> Ajay Pandey • Keep it consistent.</footer>
+  </div>
+
+  <script>
+    // --- Workout dataset with GIF links (one per exercise) ---
+    // I used public GIF-host URLs. If any GIF fails, the onerror fallback will show a placeholder.
+    const workoutData = [
+      {
+        day: "Monday",
+        focus: "Chest Workout",
+        exercises: [
+          { name: "Barbell Floor Press", img: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZXdocnhqbHNkMzU2amhrYWU2b3hmZGl5c3BwZnIya3o5c3F5Ym5lMSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/xT0GqJbgdueQKwLZ9m/giphy.gif" },
+          { name: "Decline Push-ups", img: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZHMxeHczZ2Y2dXZrbDd1eGd6MHZzc3ZyaWNsdHNjeG5pcno0aXZ4NiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/YQmmcPHmFgHekp7ktU/giphy.gif" },
+          { name: "Incline Push-ups", img: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcXI1ZDN1ZXpveTA3cDFzYWU3NWI5ejF0dmtpMTU0M2R5NG8xbWZmdyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/K1IGNk8ebMxyyY0hR2/giphy.gif" },
+          { name: "Standing Dumbbell Press", img: "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExaDR2bXIxZ2xra21tNmdxcmJmMDFkMjQwMnY2Ymkwb2xqeWtnNGtkbSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT0Gqd3edBgA6sES5O/giphy.gif" },
+          { name: "Dumbbell Squeeze Bench Press", img: "./images/18353.gif" }
+        ]
+      },
+      {
+        day: "Tuesday",
+        focus: "Back Workout",
+        exercises: [
+          { name: "One Arm Dumbbell Row", img: "https://gifdb.com/images/high/dumbbell-row-one-arm-dumbbell-workout-l5jpd6hacpagiqy9.gif" },
+          { name: "Reverse Grip Barbell Bent Over Row", img: "https://api.smartworkout.app/asset/image/1e3cc05a-a870-48b8-b0c4-9d51d5318aa4" },
+          { name: "Dumbbell Pullover", img: "https://i239.photobucket.com/albums/ff20/michaelwong75/bodybuilding/dumbbell-pullovers.gif" },
+          { name: "Romanian Deadlift", img: "https://media0.giphy.com/media/26BRHJV6j9HjNQRws/giphy.gif" },
+          { name: "Reverse Push-ups", img: "./images/bfcb394ee7fa940024eeb5dd691e1b9c.gif" }
+        ]
+      },
+      {
+        day: "Wednesday",
+        focus: "Arms (Biceps & Triceps)",
+        exercises: [
+          { name: "Barbell Curls (Bicep)", img: "./images/Barbell-Curl.gif" },
+          { name: "Dumbbell Concentration Curl", img: "./images/5fd18f2d4d88dbc13ce1aa9c_02971201-Dumbbell-Concentration-Curl-Upper-Arms.jpeg" },
+          { name: "Dumbbell Hammer Curl", img: "https://barbend.com/wp-content/uploads/2021/08/hammer-curl-barbend-movement-gif-masters.gif" },
+          { name: "Seated Dumbbell Triceps Extension", img: "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExa2JmbnEzZjY0ZmswbDJ0bmh4dm5vYzU2NHdueXY4dWY2Nm5nZjhrMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/vqyGpSOP4FO38IicCV/giphy.gif" },
+          { name: "Skull Crusher", img: "https://barbend.com/wp-content/uploads/2022/05/dumbbell-skull-crusher-barbend-movement-gif-masters.gif" },
+          { name: "Bench Dips", img: "https://flabfix.com/wp-content/uploads/2019/05/Triceps-Bench-Dips-with-Straight-Legs.gif" }
+        ]
+      },
+      {
+        day: "Thursday",
+        focus: "Abs & Forearms",
+        exercises: [
+          { name: "Crunches", img: "https://gifdb.com/images/high/man-in-white-shirt-doing-crunches-exercise-mhhekmsg1b6e181s.gif" },
+          { name: "Lying Leg Raises", img: "https://media.tenor.com/TBOR9mdMct4AAAAM/leg-raises-crunches.gif" },
+          { name: "Alternating Heel Touches", img: "https://media1.tenor.com/m/rhh9YWaGCJ8AAAAd/heels-touches.gif" },
+          { name: "Plank", img: "https://cdni.iconscout.com/illustration/premium/thumb/man-doing-forearm-plank-exercise-illustration-download-in-svg-png-gif-file-formats--core-workout-strength-form-men-fitness-pack-illustrations-8045168.png" },
+          { name: "Dumbell Reverse Wrist Curl (Forearm)", img: "https://cdn.jefit.com/assets/img/exercises/gifs/1093.gif" },
+          { name: "Barbell Wrist Curl (Forearm)", img: "https://media1.tenor.com/m/J3eICLvit4kAAAAd/wrist-curl-bar.gif" }
+        ]
+      },
+      {
+        day: "Friday",
+        focus: "Shoulder Workout",
+        exercises: [
+          { name: "Barbell/Dumbbell Overhead Press", img: "https://gifdb.com/images/high/dumbbell-row-overhead-press-f7hl4p917wh998i7.gif" },
+          { name: "Seated Barbell Shoulder Press", img: "https://gymvisual.com/img/p/1/4/5/4/1/14541.gif" },
+          { name: "Shoulder Lateral Raise", img: "https://cdn.shopify.com/s/files/1/1633/7705/files/lateral_raises_d14757f5-46ed-48de-953e-4e5d389b6021_480x480.jpg?v=1659963889" },
+          { name: "Barbell Front Raise", img: "https://fitnessprogramer.com/wp-content/uploads/2021/10/Barbell-Front-Raise-Twist.gif" },
+          { name: "Dumbbell Rear Lateral Raise", img: "https://gifdb.com/images/high/dumbbell-rear-lateral-raises-38y98qlt6rckf8g4.gif" },
+          { name: "Dumbbell/Barbell Shrug", img: "https://i.pinimg.com/originals/36/1d/5c/361d5cc869dfda52383556ef9cab1934.gif" }
+        ]
+      },
+      {
+        day: "Saturday",
+        focus: "Legs Workout",
+        exercises: [
+          { name: "Barbell Front Squat", img: "https://www.journalmenu.com/wp-content/uploads/2017/10/front-squat-gif-front-optimize.gif" },
+          { name: "Dumbbell Split Squat", img: "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExZXZ1eWUwM2lubGZsNHR2Z3F2a2Zkbml6OGRkaHlscTNqazUydzI1eSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/l4FGFlC4VincVei1q/200.gif" },
+          { name: "Dumbbell Lying Hamstring Curl", img: "https://i.pinimg.com/originals/1a/3c/bc/1a3cbc1c34d2b948562135200a24fe7b.jpg" },
+          { name: "Stiff Leg Deadlift", img: "https://gifdb.com/images/high/stiff-leg-deadlift-form-m5va1u4b5d2kuhql.gif" },
+          { name: "Chair Supported Calf Raises", img: "https://gymvisual.com/img/p/1/6/0/0/3/16003.gif" }
+        ]
+      },
+      {
+        day: "Sunday",
+        focus: "Rest Day",
+        exercises: [
+          { name: "Active Recovery & Growth", img: "https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExMHZha2V2Y2RkMmt3dzUxY29nNTZpcjludnlka2VjZjBhc2xpaTJibiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/NB5q3hU8gP4q7jqDOD/giphy.gif" }
+        ]
+      }
+    ];
+
+    // Helper: current day selection (start week as Monday)
+    let currentDayIndex = new Date().getDay() - 1; // JS: Sun=0 .. Sat=6
+    if (currentDayIndex === -1) currentDayIndex = 6; // Sunday
+    // Note: your original mapping had a bug where Saturday became index 5; we keep simple mapping 0..6 -> Mon..Sun
+
+    const tabsContainer = document.getElementById('day-tabs');
+    const contentContainer = document.getElementById('workout-content');
+
+    // Render tabs
+    function renderTabs() {
+      tabsContainer.innerHTML = '';
+      workoutData.forEach((dayData, index) => {
+        const btn = document.createElement('button');
+        btn.textContent = dayData.day;
+        btn.className = `px-3 py-2 sm:px-4 sm:py-2 text-sm font-medium rounded-lg transition duration-200 ease-in-out whitespace-nowrap ${index === currentDayIndex ? 'tab-active' : 'bg-white/4 text-slate-100 hover:bg-white/6'}`;
+        btn.dataset.index = index;
+        btn.onclick = () => switchDay(index);
+        tabsContainer.appendChild(btn);
+      });
+    }
+
+    // Render content for a day
+    function renderContent(dayIndex) {
+      const day = workoutData[dayIndex];
+      contentContainer.innerHTML = `
+        <div class="flex items-start justify-between gap-4 mb-6">
+          <div>
+            <h2 class="text-2xl sm:text-3xl font-bold text-white leading-tight">${day.day} <span class="text-slate-300 font-medium">— ${day.focus}</span></h2>
+            <p class="mt-2 text-sm text-slate-300">Reps: <span class="font-semibold">12–15</span> • Rest: <span class="font-semibold">1–2 mins</span> • Tempo: controlled</p>
+          </div>
+          <div class="hidden sm:flex items-center space-x-3">
+            <div class="px-3 py-2 rounded-lg bg-white/6 text-xs font-semibold text-slate-100">Pro tip: Breathe right</div>
+            <div class="px-3 py-2 rounded-lg accent-saffron text-xs font-semibold">Desi Mode</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          ${day.exercises.map(ex => `
+            <article class="exercise-card bg-gradient-to-br from-white/3 to-white/2 p-4 rounded-xl shadow-lg flex flex-col">
+              <h3 class="text-md font-semibold text-amber-100 mb-3 text-center">${ex.name}</h3>
+
+              <div class="w-full aspect-video rounded-lg overflow-hidden mb-3 border-2 border-white/6 bg-black/10">
+                <img src="${ex.img}" alt="${ex.name} demo" class="exercise-img w-full h-full object-cover" 
+                  onerror="this.onerror=null; this.src='https://placehold.co/800x450/0b1220/ffffff?text=GIF+not+found'">
+              </div>
+
+              <div class="mt-auto text-sm text-slate-300">
+                <p>${day.day === 'Sunday' ? 'Rest & active recovery — walk, foam roll, hydrate.' : 'Sets: 3 • Reps: 12–15 • Tempo: 2-0-1'}</p>
+                <div class="mt-3 flex items-center justify-between text-xs text-slate-400">
+                  <span>Equipment: <strong class="text-slate-200">${inferEquipment(ex.name)}</strong></span>
+                  <span>Intensity: <strong class="text-slate-200">Moderate</strong></span>
+                </div>
+              </div>
+            </article>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // Very small inference function to show 'equipment' per exercise (keeps UI richer)
+    function inferEquipment(name) {
+      const n = name.toLowerCase();
+      if (n.includes('dumbbell') || n.includes('db')) return 'Dumbbell';
+      if (n.includes('barbell') || n.includes('bar')) return 'Barbell';
+      if (n.includes('pull') || n.includes('pull-up')) return 'Pull Bar';
+      if (n.includes('push') || n.includes('plank') || n.includes('crunch')) return 'Bodyweight';
+      if (n.includes('leg') || n.includes('squat')) return 'Squat Rack';
+      return 'Basic';
+    }
+
+    // Change day
+    function switchDay(i) {
+      currentDayIndex = i;
+      renderTabs();
+      renderContent(currentDayIndex);
+      // Smooth scroll to top of content for mobile users
+      document.getElementById('workout-content').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Init
+    window.onload = () => {
+      renderTabs();
+      renderContent(currentDayIndex);
+      document.getElementById('year').textContent = new Date().getFullYear();
+    };
+  </script>
+</body>
+</html>
